@@ -1,0 +1,448 @@
+import React, { useState, useEffect, useRef } from 'react';
+
+const BettingDisplay = () => {
+  const [meronBet, setMeronBet] = useState(24091.00);
+  const [walaBet, setWalaBet] = useState(19572.00);
+  const [totalBets, setTotalBets] = useState(0);
+  const [isRunning, setIsRunning] = useState(false);
+  const [currentBetsPerSecond, setCurrentBetsPerSecond] = useState(0);
+  const intervalRef = useRef(null);
+
+  const calculatePayout = (bet, total) => {
+    const commission = 0.10;
+    const totalPool = total;
+    const netPool = totalPool * (1 - commission);
+    return ((netPool / bet) * 100).toFixed(2);
+  };
+
+  const formatMoney = (amount) => {
+    return amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+  };
+
+  const processBets = (count) => {
+    setCurrentBetsPerSecond(count);
+    
+    let newMeronBet = meronBet;
+    let newWalaBet = walaBet;
+    
+    for (let i = 0; i < count; i++) {
+      const isMeron = Math.random() > 0.5;
+      const betAmount = Math.floor(Math.random() * 4900) + 100;
+      
+      if (isMeron) {
+        newMeronBet += betAmount;
+      } else {
+        newWalaBet += betAmount;
+      }
+    }
+    
+    setMeronBet(newMeronBet);
+    setWalaBet(newWalaBet);
+    setTotalBets(prev => prev + count);
+  };
+
+  const handleStart = () => {
+    if (isRunning) return;
+    
+    setIsRunning(true);
+    intervalRef.current = setInterval(() => {
+      processBets(10);
+    }, 1000);
+  };
+
+  const handleStop = () => {
+    if (!isRunning) return;
+    
+    setIsRunning(false);
+    setCurrentBetsPerSecond(0);
+    
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  };
+
+  const handleReset = () => {
+    handleStop();
+    setMeronBet(24091.00);
+    setWalaBet(19572.00);
+    setTotalBets(0);
+    setCurrentBetsPerSecond(0);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  const totalPool = meronBet + walaBet;
+  const meronPayout = calculatePayout(meronBet, totalPool);
+  const walaPayout = calculatePayout(walaBet, totalPool);
+
+  return (
+    <div style={styles.container}>
+      <Header />
+      <BettingContainer
+        meronBet={meronBet}
+        walaBet={walaBet}
+        meronPayout={meronPayout}
+        walaPayout={walaPayout}
+        formatMoney={formatMoney}
+      />
+      <StatsContainer
+        totalBets={totalBets}
+        totalPool={totalPool}
+        betsPerSecond={currentBetsPerSecond}
+        isRunning={isRunning}
+        formatMoney={formatMoney}
+      />
+      <Controls
+        isRunning={isRunning}
+        onStart={handleStart}
+        onStop={handleStop}
+        onReset={handleReset}
+      />
+    </div>
+  );
+};
+
+const Header = () => (
+  <div style={styles.header}>
+    <h1 style={styles.headerTitle}>3 WINS TAPARAY 18, 2025</h1>
+  </div>
+);
+
+const BettingContainer = ({ meronBet, walaBet, meronPayout, walaPayout, formatMoney }) => (
+  <div style={styles.bettingContainer}>
+    <FighterSection
+      name="MERON"
+      color="meron"
+      bet={formatMoney(meronBet)}
+      payout={meronPayout}
+    />
+    <FightInfo />
+    <FighterSection
+      name="WALA"
+      color="wala"
+      bet={formatMoney(walaBet)}
+      payout={walaPayout}
+    />
+  </div>
+);
+
+const FighterSection = ({ name, color, bet, payout }) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  const sectionStyle = {
+    ...styles.fighterSection,
+    ...(color === 'meron' ? styles.meron : styles.wala),
+    ...(isHovered && styles.fighterSectionHover)
+  };
+
+  return (
+    <div 
+      style={sectionStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <div style={styles.fighterName}>{name}</div>
+      <div style={styles.betLabel}>BET:</div>
+      <div style={styles.betAmount}>{bet}</div>
+      <div style={styles.payoutLabel}>PAYOUT:</div>
+      <div style={{...styles.payoutPercentage, ...styles.pulse}}>{payout}%</div>
+    </div>
+  );
+};
+
+const FightInfo = () => (
+  <div style={styles.fightInfo}>
+    <div style={styles.fightLabel}>Fight No:</div>
+    <div style={styles.fightNumber}>6</div>
+  </div>
+);
+
+const StatsContainer = ({ totalBets, totalPool, betsPerSecond, isRunning, formatMoney }) => (
+  <div style={styles.statsContainer}>
+    <div style={styles.statsGrid}>
+      <StatItem label="Total Bets" value={totalBets.toLocaleString()} />
+      <StatItem label="Total Pool" value={`₱${formatMoney(totalPool)}`} />
+      <StatItem label="Bets/Second" value={betsPerSecond} />
+      <StatItem 
+        label="Status" 
+        value={isRunning ? 'Live' : totalBets > 0 ? 'Stopped' : 'Ready'} 
+        color={isRunning ? '#00e676' : totalBets > 0 ? '#ff5252' : 'white'}
+      />
+    </div>
+  </div>
+);
+
+const StatItem = ({ label, value, color = 'white' }) => (
+  <div style={styles.statItem}>
+    <div style={styles.statLabel}>{label}</div>
+    <div style={{...styles.statValue, color}}>{value}</div>
+  </div>
+);
+
+const Controls = ({ isRunning, onStart, onStop, onReset }) => {
+  const [hoveredButton, setHoveredButton] = useState(null);
+
+  const getButtonStyle = (type, isDisabled) => {
+    const baseStyle = { ...styles.button };
+    if (isDisabled) {
+      return { ...baseStyle, ...styles.buttonDisabled };
+    }
+    if (hoveredButton === type) {
+      return { ...baseStyle, ...styles.buttonHover, ...styles[`button${type}`] };
+    }
+    return { ...baseStyle, ...styles[`button${type}`] };
+  };
+
+  return (
+    <div style={styles.controls}>
+      <button
+        style={getButtonStyle('Start', isRunning)}
+        onClick={onStart}
+        disabled={isRunning}
+        onMouseEnter={() => setHoveredButton('Start')}
+        onMouseLeave={() => setHoveredButton(null)}
+      >
+        Start Betting
+      </button>
+      <button
+        style={getButtonStyle('Stop', !isRunning)}
+        onClick={onStop}
+        disabled={!isRunning}
+        onMouseEnter={() => setHoveredButton('Stop')}
+        onMouseLeave={() => setHoveredButton(null)}
+      >
+        Stop Betting
+      </button>
+      <button
+        style={getButtonStyle('Reset', false)}
+        onClick={onReset}
+        onMouseEnter={() => setHoveredButton('Reset')}
+        onMouseLeave={() => setHoveredButton(null)}
+      >
+        Reset
+      </button>
+    </div>
+  );
+};
+
+const styles = {
+  container: {
+    width: '95%',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    fontFamily: 'Arial, sans-serif',
+  },
+  header: {
+    textAlign: 'center',
+    marginBottom: '30px',
+    padding: '20px',
+  },
+  headerTitle: {
+    fontSize: '3rem',
+    fontWeight: 'bold',
+    letterSpacing: '2px',
+    textShadow: '0 0 20px rgba(255, 255, 255, 0.3)',
+    color: 'white',
+  },
+  bettingContainer: {
+    display: 'flex',
+    gap: 0,
+    borderRadius: '20px',
+    overflow: 'hidden',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+    position: 'relative',
+  },
+  fighterSection: {
+    flex: 1,
+    padding: '60px 40px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+    transition: 'transform 0.3s ease',
+  },
+  fighterSectionHover: {
+    transform: 'scale(1.02)',
+  },
+  meron: {
+    background: 'linear-gradient(135deg, #ff3b3b 0%, #d32f2f 100%)',
+  },
+  wala: {
+    background: 'linear-gradient(135deg, #2962ff 0%, #1565c0 100%)',
+  },
+  fighterName: {
+    fontSize: '4rem',
+    fontWeight: 900,
+    marginBottom: '40px',
+    letterSpacing: '3px',
+    textShadow: '0 4px 10px rgba(0, 0, 0, 0.3)',
+    color: 'white',
+  },
+  betLabel: {
+    fontSize: '1.5rem',
+    fontWeight: 600,
+    marginBottom: '15px',
+    opacity: 0.9,
+    color: 'white',
+  },
+  betAmount: {
+    fontSize: '4.5rem',
+    fontWeight: 900,
+    marginBottom: '40px',
+    textShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
+    color: 'white',
+  },
+  payoutLabel: {
+    fontSize: '1.5rem',
+    fontWeight: 600,
+    marginBottom: '15px',
+    opacity: 0.9,
+    color: 'white',
+  },
+  payoutPercentage: {
+    fontSize: '5rem',
+    fontWeight: 900,
+    textShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
+    color: 'white',
+  },
+  pulse: {
+    animation: 'pulse 2s ease-in-out infinite',
+  },
+  fightInfo: {
+    position: 'absolute',
+    top: 0,
+    left: '50%',
+    transform: 'translateX(-50%)',
+    background: 'white',
+    padding: '30px 40px',
+    borderRadius: '0 0 15px 15px',
+    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
+    zIndex: 10,
+    textAlign: 'center',
+  },
+  fightLabel: {
+    color: '#333',
+    fontSize: '1.2rem',
+    fontWeight: 600,
+    marginBottom: '10px',
+  },
+  fightNumber: {
+    color: '#1a1a2e',
+    fontSize: '5rem',
+    fontWeight: 900,
+    lineHeight: 1,
+  },
+  statsContainer: {
+    marginTop: '40px',
+    padding: '30px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '15px',
+    backdropFilter: 'blur(10px)',
+  },
+  statsGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+    gap: '20px',
+  },
+  statItem: {
+    textAlign: 'center',
+    padding: '15px',
+    background: 'rgba(255, 255, 255, 0.05)',
+    borderRadius: '10px',
+  },
+  statLabel: {
+    fontSize: '0.9rem',
+    opacity: 0.8,
+    marginBottom: '5px',
+    color: 'white',
+  },
+  statValue: {
+    fontSize: '1.5rem',
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  controls: {
+    marginTop: '30px',
+    textAlign: 'center',
+    padding: '20px',
+    background: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: '15px',
+    backdropFilter: 'blur(10px)',
+  },
+  button: {
+    padding: '15px 30px',
+    margin: '0 10px',
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    border: 'none',
+    borderRadius: '10px',
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    textTransform: 'uppercase',
+    letterSpacing: '1px',
+    color: 'white',
+  },
+  buttonStart: {
+    background: 'linear-gradient(135deg, #00e676 0%, #00c853 100%)',
+  },
+  buttonStop: {
+    background: 'linear-gradient(135deg, #ff5252 0%, #d32f2f 100%)',
+  },
+  buttonReset: {
+    background: 'linear-gradient(135deg, #ffab00 0%, #ff8f00 100%)',
+  },
+  buttonHover: {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 5px 15px rgba(0, 0, 0, 0.3)',
+  },
+  buttonDisabled: {
+    opacity: 0.5,
+    cursor: 'not-allowed',
+  },
+};
+
+// Add CSS for animation
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
+  }
+  
+  body {
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  #root {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+`;
+document.head.appendChild(styleSheet);
+
+export default BettingDisplay;
