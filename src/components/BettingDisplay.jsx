@@ -10,8 +10,14 @@ const BettingDisplay = () => {
   const [isWalaOpen, setIsWalaOpen] = useState(true);
 
   const totalPool = meronBet + walaBet;
-  const meronPayout = useMemo(() => calculatePayout(meronBet, totalPool), [meronBet, totalPool]);
-  const walaPayout = useMemo(() => calculatePayout(walaBet, totalPool), [walaBet, totalPool]);
+  const meronPayout = useMemo(
+    () => calculatePayout(meronBet, totalPool),
+    [meronBet, totalPool],
+  );
+  const walaPayout = useMemo(
+    () => calculatePayout(walaBet, totalPool),
+    [walaBet, totalPool],
+  );
 
   const areAllOpen = isMeronOpen && isWalaOpen;
 
@@ -23,30 +29,32 @@ const BettingDisplay = () => {
 
   return (
     <main style={styles.page}>
-      <div style={styles.board}>
-        <FighterPanel
-          side="MERON"
-          isOpen={isMeronOpen}
-          onToggle={() => setIsMeronOpen((value) => !value)}
-          bet={formatMoney(meronBet)}
-          payout={meronPayout}
-          panelStyle={styles.meron}
-        />
-
-        <FightInfo />
-
-        <FighterPanel
-          side="WALA"
-          isOpen={isWalaOpen}
-          onToggle={() => setIsWalaOpen((value) => !value)}
-          bet={formatMoney(walaBet)}
-          payout={walaPayout}
-          panelStyle={styles.wala}
-        />
-
+      <div style={styles.frame}>
         <button style={styles.allButton} onClick={toggleAll}>
           {areAllOpen ? 'CLOSE ALL' : 'OPEN ALL'}
         </button>
+
+        <div style={styles.board}>
+          <FighterPanel
+            side='MERONs'
+            isOpen={isMeronOpen}
+            onToggle={() => setIsMeronOpen((value) => !value)}
+            bet={formatMoney(meronBet)}
+            payout={meronPayout}
+            panelStyle={styles.meron}
+          />
+
+          <FightInfo />
+
+          <FighterPanel
+            side='WALA'
+            isOpen={isWalaOpen}
+            onToggle={() => setIsWalaOpen((value) => !value)}
+            bet={formatMoney(walaBet)}
+            payout={walaPayout}
+            panelStyle={styles.wala}
+          />
+        </div>
       </div>
     </main>
   );
@@ -55,7 +63,10 @@ const BettingDisplay = () => {
 const FighterPanel = ({ side, isOpen, onToggle, bet, payout, panelStyle }) => (
   <section style={{ ...styles.panel, ...panelStyle }}>
     <button
-      style={{ ...styles.sideLockButton, ...(isOpen ? styles.openState : styles.closedState) }}
+      style={{
+        ...styles.sideLockButton,
+        ...(isOpen ? styles.openState : styles.closedState),
+      }}
       onClick={onToggle}
       aria-label={`${isOpen ? 'Close' : 'Open'} ${side} betting`}
     >
@@ -94,78 +105,94 @@ const formatMoney = (amount) =>
 const styles = {
   page: {
     minHeight: '100vh',
-    margin: 0,
+    padding: '26px',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    background: '#050714',
+    background:
+      'radial-gradient(circle at 50% 0%, #1e2252 0%, #0a0d23 48%, #060714 100%)',
     fontFamily: 'Arial, Helvetica, sans-serif',
   },
-  board: {
+  frame: {
     width: '100%',
-    maxWidth: '1200px',
-    minHeight: '640px',
+    maxWidth: '1120px',
+  },
+  allButton: {
+    margin: '0 auto 14px',
+    display: 'block',
+    border: '1px solid rgba(255,255,255,0.35)',
+    background: 'rgba(255,255,255,0.16)',
+    color: 'white',
+    borderRadius: '999px',
+    padding: '10px 20px',
+    fontWeight: 800,
+    letterSpacing: '0.8px',
+    cursor: 'pointer',
+  },
+  board: {
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    borderRadius: 0,
+    borderRadius: '16px',
     overflow: 'hidden',
     position: 'relative',
+    boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
   },
   panel: {
+    minHeight: '490px',
     textAlign: 'center',
-    padding: '24px 24px 84px',
+    padding: '18px 28px 38px',
     color: 'white',
     position: 'relative',
   },
   meron: {
-    background: 'linear-gradient(140deg, #ff3b3b 0%, #ea2428 50%, #d9151f 100%)',
+    background:
+      'linear-gradient(140deg, #ff3b3b 0%, #ea2428 50%, #d9151f 100%)',
   },
   wala: {
-    background: 'linear-gradient(140deg, #1a6aff 0%, #0e58f2 50%, #0845d2 100%)',
+    background:
+      'linear-gradient(140deg, #1a6aff 0%, #0e58f2 50%, #0845d2 100%)',
   },
   sideLockButton: {
     position: 'absolute',
-    top: '20px',
-    left: '50%',
-    transform: 'translateX(-50%)',
+    top: '14px',
+    left: '18px',
     border: 'none',
     borderRadius: '999px',
-    padding: '14px 24px',
+    padding: '7px 12px',
     display: 'inline-flex',
-    gap: '10px',
+    gap: '8px',
     alignItems: 'center',
     color: 'white',
-    fontWeight: 800,
-    fontSize: '1.1rem',
-    letterSpacing: '0.6px',
+    fontWeight: 700,
+    fontSize: '0.8rem',
+    letterSpacing: '0.5px',
     cursor: 'pointer',
-    zIndex: 5,
+    zIndex: 2,
   },
   openState: {
     background: 'rgba(0, 170, 90, 0.95)',
   },
   closedState: {
-    background: 'rgba(20, 20, 20, 0.85)',
+    background: 'rgba(20, 20, 20, 0.78)',
   },
   lockIcon: {
     lineHeight: 1,
-    fontSize: '1.25rem',
   },
   closedOverlay: {
     position: 'absolute',
     inset: 0,
-    background: 'rgba(0,0,0,0.24)',
+    background: 'rgba(0,0,0,0.2)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    fontSize: '1.35rem',
+    fontSize: '1.25rem',
     fontWeight: 800,
     letterSpacing: '1px',
     textShadow: '0 2px 6px rgba(0,0,0,0.45)',
   },
   sideName: {
-    margin: '96px 0 30px',
-    fontSize: '5rem',
+    margin: '58px 0 30px',
+    fontSize: '5.1rem',
     fontWeight: 900,
     letterSpacing: '2px',
     textShadow: '0 3px 8px rgba(0,0,0,0.28)',
@@ -177,13 +204,13 @@ const styles = {
   },
   amount: {
     margin: '0 0 28px',
-    fontSize: '5.5rem',
+    fontSize: '5.8rem',
     fontWeight: 900,
     textShadow: '0 4px 10px rgba(0,0,0,0.28)',
   },
   payout: {
     margin: 0,
-    fontSize: '5.3rem',
+    fontSize: '5.6rem',
     fontWeight: 900,
     opacity: 0.8,
     textShadow: '0 4px 10px rgba(0,0,0,0.28)',
@@ -196,10 +223,10 @@ const styles = {
     background: 'white',
     color: '#111427',
     borderRadius: '0 0 16px 16px',
-    minWidth: '160px',
+    minWidth: '152px',
     textAlign: 'center',
-    padding: '20px 12px 14px',
-    zIndex: 6,
+    padding: '18px 12px 14px',
+    boxShadow: '0 12px 30px rgba(0,0,0,0.28)',
   },
   fightLabel: {
     marginBottom: '6px',
@@ -210,22 +237,6 @@ const styles = {
     fontSize: '5.8rem',
     lineHeight: 1,
     fontWeight: 900,
-  },
-  allButton: {
-    position: 'absolute',
-    left: '50%',
-    bottom: '16px',
-    transform: 'translateX(-50%)',
-    border: '1px solid rgba(255,255,255,0.5)',
-    background: 'rgba(7, 8, 22, 0.9)',
-    color: 'white',
-    borderRadius: '999px',
-    padding: '14px 28px',
-    fontSize: '1.05rem',
-    fontWeight: 800,
-    letterSpacing: '0.8px',
-    cursor: 'pointer',
-    zIndex: 7,
   },
 };
 
