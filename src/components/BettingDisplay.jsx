@@ -10,8 +10,14 @@ const BettingDisplay = () => {
   const [isWalaOpen, setIsWalaOpen] = useState(true);
 
   const totalPool = meronBet + walaBet;
-  const meronPayout = useMemo(() => calculatePayout(meronBet, totalPool), [meronBet, totalPool]);
-  const walaPayout = useMemo(() => calculatePayout(walaBet, totalPool), [walaBet, totalPool]);
+  const meronPayout = useMemo(
+    () => calculatePayout(meronBet, totalPool),
+    [meronBet, totalPool],
+  );
+  const walaPayout = useMemo(
+    () => calculatePayout(walaBet, totalPool),
+    [walaBet, totalPool],
+  );
 
   const areAllOpen = isMeronOpen && isWalaOpen;
 
@@ -30,7 +36,7 @@ const BettingDisplay = () => {
 
         <div style={styles.board}>
           <FighterPanel
-            side="MERON"
+            side='MERONs'
             isOpen={isMeronOpen}
             onToggle={() => setIsMeronOpen((value) => !value)}
             bet={formatMoney(meronBet)}
@@ -41,7 +47,7 @@ const BettingDisplay = () => {
           <FightInfo />
 
           <FighterPanel
-            side="WALA"
+            side='WALA'
             isOpen={isWalaOpen}
             onToggle={() => setIsWalaOpen((value) => !value)}
             bet={formatMoney(walaBet)}
@@ -57,7 +63,10 @@ const BettingDisplay = () => {
 const FighterPanel = ({ side, isOpen, onToggle, bet, payout, panelStyle }) => (
   <section style={{ ...styles.panel, ...panelStyle }}>
     <button
-      style={{ ...styles.sideLockButton, ...(isOpen ? styles.openState : styles.closedState) }}
+      style={{
+        ...styles.sideLockButton,
+        ...(isOpen ? styles.openState : styles.closedState),
+      }}
       onClick={onToggle}
       aria-label={`${isOpen ? 'Close' : 'Open'} ${side} betting`}
     >
@@ -100,7 +109,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    background: 'radial-gradient(circle at 50% 0%, #1e2252 0%, #0a0d23 48%, #060714 100%)',
+    background:
+      'radial-gradient(circle at 50% 0%, #1e2252 0%, #0a0d23 48%, #060714 100%)',
     fontFamily: 'Arial, Helvetica, sans-serif',
   },
   frame: {
@@ -135,10 +145,12 @@ const styles = {
     position: 'relative',
   },
   meron: {
-    background: 'linear-gradient(140deg, #ff3b3b 0%, #ea2428 50%, #d9151f 100%)',
+    background:
+      'linear-gradient(140deg, #ff3b3b 0%, #ea2428 50%, #d9151f 100%)',
   },
   wala: {
-    background: 'linear-gradient(140deg, #1a6aff 0%, #0e58f2 50%, #0845d2 100%)',
+    background:
+      'linear-gradient(140deg, #1a6aff 0%, #0e58f2 50%, #0845d2 100%)',
   },
   sideLockButton: {
     position: 'absolute',
