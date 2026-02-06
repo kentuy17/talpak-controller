@@ -29,32 +29,28 @@ const BettingDisplay = () => {
 
   return (
     <main style={styles.page}>
-      <div style={styles.frame}>
+      <div style={styles.board}>
+        <FighterPanel
+          side='MERONs'
+          isOpen={isMeronOpen}
+          onToggle={() => setIsMeronOpen((value) => !value)}
+          bet={formatMoney(meronBet)}
+          payout={meronPayout}
+          panelStyle={styles.meron}
+        />
+
+        <FighterPanel
+          side='WALA'
+          isOpen={isWalaOpen}
+          onToggle={() => setIsWalaOpen((value) => !value)}
+          bet={formatMoney(walaBet)}
+          payout={walaPayout}
+          panelStyle={styles.wala}
+        />
+
         <button style={styles.allButton} onClick={toggleAll}>
           {areAllOpen ? 'CLOSE ALL' : 'OPEN ALL'}
         </button>
-
-        <div style={styles.board}>
-          <FighterPanel
-            side='MERONs'
-            isOpen={isMeronOpen}
-            onToggle={() => setIsMeronOpen((value) => !value)}
-            bet={formatMoney(meronBet)}
-            payout={meronPayout}
-            panelStyle={styles.meron}
-          />
-
-          <FightInfo />
-
-          <FighterPanel
-            side='WALA'
-            isOpen={isWalaOpen}
-            onToggle={() => setIsWalaOpen((value) => !value)}
-            bet={formatMoney(walaBet)}
-            payout={walaPayout}
-            panelStyle={styles.wala}
-          />
-        </div>
       </div>
     </main>
   );
@@ -84,13 +80,6 @@ const FighterPanel = ({ side, isOpen, onToggle, bet, payout, panelStyle }) => (
   </section>
 );
 
-const FightInfo = () => (
-  <div style={styles.fightInfo}>
-    <div style={styles.fightLabel}>Fight No:</div>
-    <div style={styles.fightNo}>6</div>
-  </div>
-);
-
 const calculatePayout = (bet, total) => {
   const netPool = total * 0.9;
   return ((netPool / bet) * 100).toFixed(2);
@@ -105,42 +94,27 @@ const formatMoney = (amount) =>
 const styles = {
   page: {
     minHeight: '100vh',
-    padding: '26px',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    background:
-      'radial-gradient(circle at 50% 0%, #1e2252 0%, #0a0d23 48%, #060714 100%)',
+    background: '#060714',
     fontFamily: 'Arial, Helvetica, sans-serif',
   },
-  frame: {
-    width: '100%',
-    maxWidth: '1120px',
-  },
-  allButton: {
-    margin: '0 auto 14px',
-    display: 'block',
-    border: '1px solid rgba(255,255,255,0.35)',
-    background: 'rgba(255,255,255,0.16)',
-    color: 'white',
-    borderRadius: '999px',
-    padding: '10px 20px',
-    fontWeight: 800,
-    letterSpacing: '0.8px',
-    cursor: 'pointer',
-  },
   board: {
+    width: '100%',
+    maxWidth: '1024px',
+    minHeight: '680px',
     display: 'grid',
     gridTemplateColumns: '1fr 1fr',
-    borderRadius: '16px',
+    borderRadius: '0',
     overflow: 'hidden',
     position: 'relative',
-    boxShadow: '0 20px 50px rgba(0,0,0,0.45)',
+    boxShadow: 'none',
   },
   panel: {
-    minHeight: '490px',
+    minHeight: '680px',
     textAlign: 'center',
-    padding: '18px 28px 38px',
+    padding: '28px 24px 112px',
     color: 'white',
     position: 'relative',
   },
@@ -154,20 +128,21 @@ const styles = {
   },
   sideLockButton: {
     position: 'absolute',
-    top: '14px',
-    left: '18px',
+    top: '16px',
+    left: '50%',
+    transform: 'translateX(-50%)',
     border: 'none',
     borderRadius: '999px',
-    padding: '7px 12px',
+    padding: '12px 22px',
     display: 'inline-flex',
-    gap: '8px',
+    gap: '10px',
     alignItems: 'center',
     color: 'white',
-    fontWeight: 700,
-    fontSize: '0.8rem',
-    letterSpacing: '0.5px',
+    fontWeight: 800,
+    fontSize: '1.15rem',
+    letterSpacing: '0.8px',
     cursor: 'pointer',
-    zIndex: 2,
+    zIndex: 6,
   },
   openState: {
     background: 'rgba(0, 170, 90, 0.95)',
@@ -191,8 +166,8 @@ const styles = {
     textShadow: '0 2px 6px rgba(0,0,0,0.45)',
   },
   sideName: {
-    margin: '58px 0 30px',
-    fontSize: '5.1rem',
+    margin: '96px 0 30px',
+    fontSize: '4.8rem',
     fontWeight: 900,
     letterSpacing: '2px',
     textShadow: '0 3px 8px rgba(0,0,0,0.28)',
@@ -204,39 +179,33 @@ const styles = {
   },
   amount: {
     margin: '0 0 28px',
-    fontSize: '5.8rem',
+    fontSize: '5.2rem',
     fontWeight: 900,
     textShadow: '0 4px 10px rgba(0,0,0,0.28)',
   },
   payout: {
     margin: 0,
-    fontSize: '5.6rem',
+    fontSize: '5rem',
     fontWeight: 900,
     opacity: 0.8,
     textShadow: '0 4px 10px rgba(0,0,0,0.28)',
   },
-  fightInfo: {
+  allButton: {
     position: 'absolute',
-    top: 0,
+    bottom: '22px',
     left: '50%',
     transform: 'translateX(-50%)',
-    background: 'white',
-    color: '#111427',
-    borderRadius: '0 0 16px 16px',
-    minWidth: '152px',
-    textAlign: 'center',
-    padding: '18px 12px 14px',
-    boxShadow: '0 12px 30px rgba(0,0,0,0.28)',
-  },
-  fightLabel: {
-    marginBottom: '6px',
-    fontSize: '2rem',
-    fontWeight: 700,
-  },
-  fightNo: {
-    fontSize: '5.8rem',
-    lineHeight: 1,
+    border: '2px solid rgba(255,255,255,0.55)',
+    background: 'rgba(8, 10, 28, 0.88)',
+    color: 'white',
+    borderRadius: '999px',
+    padding: '14px 28px',
     fontWeight: 900,
+    fontSize: '1.1rem',
+    letterSpacing: '1px',
+    cursor: 'pointer',
+    zIndex: 7,
+    boxShadow: '0 8px 20px rgba(0,0,0,0.38)',
   },
 };
 
