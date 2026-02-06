@@ -1,323 +1,192 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useMemo, useState } from 'react';
+
+const INITIAL_MERON_BET = 24091;
+const INITIAL_WALA_BET = 19572;
 
 const BettingDisplay = () => {
-  const [meronBet, setMeronBet] = useState(24091.00);
-  const [walaBet, setWalaBet] = useState(19572.00);
-  const [totalBets, setTotalBets] = useState(0);
-  const [isRunning, setIsRunning] = useState(false);
-  const [currentBetsPerSecond, setCurrentBetsPerSecond] = useState(0);
-  const intervalRef = useRef(null);
-
-  const calculatePayout = (bet, total) => {
-    const commission = 0.10;
-    const totalPool = total;
-    const netPool = totalPool * (1 - commission);
-    return ((netPool / bet) * 100).toFixed(2);
-  };
-
-  const formatMoney = (amount) => {
-    return amount.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
-  };
-
-  const processBets = (count) => {
-    setCurrentBetsPerSecond(count);
-    
-    let newMeronBet = meronBet;
-    let newWalaBet = walaBet;
-    
-    for (let i = 0; i < count; i++) {
-      const isMeron = Math.random() > 0.5;
-      const betAmount = Math.floor(Math.random() * 4900) + 100;
-      
-      if (isMeron) {
-        newMeronBet += betAmount;
-      } else {
-        newWalaBet += betAmount;
-      }
-    }
-    
-    setMeronBet(newMeronBet);
-    setWalaBet(newWalaBet);
-    setTotalBets(prev => prev + count);
-  };
-
-  const handleStart = () => {
-    if (isRunning) return;
-    
-    setIsRunning(true);
-    intervalRef.current = setInterval(() => {
-      processBets(10);
-    }, 1000);
-  };
-
-  const handleStop = () => {
-    if (!isRunning) return;
-    
-    setIsRunning(false);
-    setCurrentBetsPerSecond(0);
-    
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
-  };
-
-  const handleReset = () => {
-    handleStop();
-    setMeronBet(24091.00);
-    setWalaBet(19572.00);
-    setTotalBets(0);
-    setCurrentBetsPerSecond(0);
-  };
-
-  useEffect(() => {
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
+  const [meronBet] = useState(INITIAL_MERON_BET);
+  const [walaBet] = useState(INITIAL_WALA_BET);
+  const [isMeronOpen, setIsMeronOpen] = useState(true);
+  const [isWalaOpen, setIsWalaOpen] = useState(true);
 
   const totalPool = meronBet + walaBet;
-  const meronPayout = calculatePayout(meronBet, totalPool);
-  const walaPayout = calculatePayout(walaBet, totalPool);
+  const meronPayout = useMemo(() => calculatePayout(meronBet, totalPool), [meronBet, totalPool]);
+  const walaPayout = useMemo(() => calculatePayout(walaBet, totalPool), [walaBet, totalPool]);
 
-  return (
-    <div style={styles.container}>
-      <Header />
-      <BettingContainer
-        meronBet={meronBet}
-        walaBet={walaBet}
-        meronPayout={meronPayout}
-        walaPayout={walaPayout}
-        formatMoney={formatMoney}
-      />
-      <StatsContainer
-        totalBets={totalBets}
-        totalPool={totalPool}
-        betsPerSecond={currentBetsPerSecond}
-        isRunning={isRunning}
-        formatMoney={formatMoney}
-      />
-      <Controls
-        isRunning={isRunning}
-        onStart={handleStart}
-        onStop={handleStop}
-        onReset={handleReset}
-      />
-    </div>
-  );
-};
+  const areAllOpen = isMeronOpen && isWalaOpen;
 
-const Header = () => (
-  <div style={styles.header}>
-    <h1 style={styles.headerTitle}>3 WINS TAPARAY 18, 2025</h1>
-  </div>
-);
-
-const BettingContainer = ({ meronBet, walaBet, meronPayout, walaPayout, formatMoney }) => (
-  <div style={styles.bettingContainer}>
-    <FighterSection
-      name="MERON"
-      color="meron"
-      bet={formatMoney(meronBet)}
-      payout={meronPayout}
-    />
-    <FightInfo />
-    <FighterSection
-      name="WALA"
-      color="wala"
-      bet={formatMoney(walaBet)}
-      payout={walaPayout}
-    />
-  </div>
-);
-
-const FighterSection = ({ name, color, bet, payout }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  
-  const sectionStyle = {
-    ...styles.fighterSection,
-    ...(color === 'meron' ? styles.meron : styles.wala),
-    ...(isHovered && styles.fighterSectionHover)
+  const toggleAll = () => {
+    const next = !areAllOpen;
+    setIsMeronOpen(next);
+    setIsWalaOpen(next);
   };
 
   return (
-    <div 
-      style={sectionStyle}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div style={styles.fighterName}>{name}</div>
-      <div style={styles.betLabel}>BET:</div>
-      <div style={styles.betAmount}>{bet}</div>
-      <div style={styles.payoutLabel}>PAYOUT:</div>
-      <div style={{...styles.payoutPercentage, ...styles.pulse}}>{payout}%</div>
-    </div>
+    <main style={styles.page}>
+      <div style={styles.board}>
+        <FighterPanel
+          side="MERON"
+          isOpen={isMeronOpen}
+          onToggle={() => setIsMeronOpen((value) => !value)}
+          bet={formatMoney(meronBet)}
+          payout={meronPayout}
+          panelStyle={styles.meron}
+        />
+
+        <FightInfo />
+
+        <FighterPanel
+          side="WALA"
+          isOpen={isWalaOpen}
+          onToggle={() => setIsWalaOpen((value) => !value)}
+          bet={formatMoney(walaBet)}
+          payout={walaPayout}
+          panelStyle={styles.wala}
+        />
+
+        <button style={styles.allButton} onClick={toggleAll}>
+          {areAllOpen ? 'CLOSE ALL' : 'OPEN ALL'}
+        </button>
+      </div>
+    </main>
   );
 };
+
+const FighterPanel = ({ side, isOpen, onToggle, bet, payout, panelStyle }) => (
+  <section style={{ ...styles.panel, ...panelStyle }}>
+    <button
+      style={{ ...styles.sideLockButton, ...(isOpen ? styles.openState : styles.closedState) }}
+      onClick={onToggle}
+      aria-label={`${isOpen ? 'Close' : 'Open'} ${side} betting`}
+    >
+      <span style={styles.lockIcon}>{isOpen ? '🔓' : '🔒'}</span>
+      <span>{isOpen ? 'OPEN' : 'CLOSED'}</span>
+    </button>
+
+    {!isOpen && <div style={styles.closedOverlay}>BETTING CLOSED</div>}
+
+    <h1 style={styles.sideName}>{side}</h1>
+    <p style={styles.label}>BET:</p>
+    <p style={styles.amount}>{bet}</p>
+    <p style={styles.label}>PAYOUT:</p>
+    <p style={styles.payout}>{payout}%</p>
+  </section>
+);
 
 const FightInfo = () => (
   <div style={styles.fightInfo}>
     <div style={styles.fightLabel}>Fight No:</div>
-    <div style={styles.fightNumber}>6</div>
+    <div style={styles.fightNo}>6</div>
   </div>
 );
 
-const StatsContainer = ({ totalBets, totalPool, betsPerSecond, isRunning, formatMoney }) => (
-  <div style={styles.statsContainer}>
-    <div style={styles.statsGrid}>
-      <StatItem label="Total Bets" value={totalBets.toLocaleString()} />
-      <StatItem label="Total Pool" value={`₱${formatMoney(totalPool)}`} />
-      <StatItem label="Bets/Second" value={betsPerSecond} />
-      <StatItem 
-        label="Status" 
-        value={isRunning ? 'Live' : totalBets > 0 ? 'Stopped' : 'Ready'} 
-        color={isRunning ? '#00e676' : totalBets > 0 ? '#ff5252' : 'white'}
-      />
-    </div>
-  </div>
-);
-
-const StatItem = ({ label, value, color = 'white' }) => (
-  <div style={styles.statItem}>
-    <div style={styles.statLabel}>{label}</div>
-    <div style={{...styles.statValue, color}}>{value}</div>
-  </div>
-);
-
-const Controls = ({ isRunning, onStart, onStop, onReset }) => {
-  const [hoveredButton, setHoveredButton] = useState(null);
-
-  const getButtonStyle = (type, isDisabled) => {
-    const baseStyle = { ...styles.button };
-    if (isDisabled) {
-      return { ...baseStyle, ...styles.buttonDisabled };
-    }
-    if (hoveredButton === type) {
-      return { ...baseStyle, ...styles.buttonHover, ...styles[`button${type}`] };
-    }
-    return { ...baseStyle, ...styles[`button${type}`] };
-  };
-
-  return (
-    <div style={styles.controls}>
-      <button
-        style={getButtonStyle('Start', isRunning)}
-        onClick={onStart}
-        disabled={isRunning}
-        onMouseEnter={() => setHoveredButton('Start')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        Start Betting
-      </button>
-      <button
-        style={getButtonStyle('Stop', !isRunning)}
-        onClick={onStop}
-        disabled={!isRunning}
-        onMouseEnter={() => setHoveredButton('Stop')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        Stop Betting
-      </button>
-      <button
-        style={getButtonStyle('Reset', false)}
-        onClick={onReset}
-        onMouseEnter={() => setHoveredButton('Reset')}
-        onMouseLeave={() => setHoveredButton(null)}
-      >
-        Reset
-      </button>
-    </div>
-  );
+const calculatePayout = (bet, total) => {
+  const netPool = total * 0.9;
+  return ((netPool / bet) * 100).toFixed(2);
 };
 
+const formatMoney = (amount) =>
+  amount.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
 const styles = {
-  container: {
-    width: '95%',
-    maxWidth: '1200px',
-    margin: '0 auto',
-    fontFamily: 'Arial, sans-serif',
-  },
-  header: {
-    textAlign: 'center',
-    marginBottom: '30px',
-    padding: '20px',
-  },
-  headerTitle: {
-    fontSize: '3rem',
-    fontWeight: 'bold',
-    letterSpacing: '2px',
-    textShadow: '0 0 20px rgba(255, 255, 255, 0.3)',
-    color: 'white',
-  },
-  bettingContainer: {
+  page: {
+    minHeight: '100vh',
+    margin: 0,
     display: 'flex',
-    gap: 0,
-    borderRadius: '20px',
-    overflow: 'hidden',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-    position: 'relative',
-  },
-  fighterSection: {
-    flex: 1,
-    padding: '60px 40px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-    transition: 'transform 0.3s ease',
+    alignItems: 'center',
+    background: '#050714',
+    fontFamily: 'Arial, Helvetica, sans-serif',
   },
-  fighterSectionHover: {
-    transform: 'scale(1.02)',
+  board: {
+    width: '100%',
+    maxWidth: '1200px',
+    minHeight: '640px',
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    borderRadius: 0,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  panel: {
+    textAlign: 'center',
+    padding: '24px 24px 84px',
+    color: 'white',
+    position: 'relative',
   },
   meron: {
-    background: 'linear-gradient(135deg, #ff3b3b 0%, #d32f2f 100%)',
+    background: 'linear-gradient(140deg, #ff3b3b 0%, #ea2428 50%, #d9151f 100%)',
   },
   wala: {
-    background: 'linear-gradient(135deg, #2962ff 0%, #1565c0 100%)',
+    background: 'linear-gradient(140deg, #1a6aff 0%, #0e58f2 50%, #0845d2 100%)',
   },
-  fighterName: {
-    fontSize: '4rem',
-    fontWeight: 900,
-    marginBottom: '40px',
-    letterSpacing: '3px',
-    textShadow: '0 4px 10px rgba(0, 0, 0, 0.3)',
+  sideLockButton: {
+    position: 'absolute',
+    top: '20px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    border: 'none',
+    borderRadius: '999px',
+    padding: '14px 24px',
+    display: 'inline-flex',
+    gap: '10px',
+    alignItems: 'center',
     color: 'white',
+    fontWeight: 800,
+    fontSize: '1.1rem',
+    letterSpacing: '0.6px',
+    cursor: 'pointer',
+    zIndex: 5,
   },
-  betLabel: {
-    fontSize: '1.5rem',
-    fontWeight: 600,
-    marginBottom: '15px',
-    opacity: 0.9,
-    color: 'white',
+  openState: {
+    background: 'rgba(0, 170, 90, 0.95)',
   },
-  betAmount: {
-    fontSize: '4.5rem',
-    fontWeight: 900,
-    marginBottom: '40px',
-    textShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
-    color: 'white',
+  closedState: {
+    background: 'rgba(20, 20, 20, 0.85)',
   },
-  payoutLabel: {
-    fontSize: '1.5rem',
-    fontWeight: 600,
-    marginBottom: '15px',
-    opacity: 0.9,
-    color: 'white',
+  lockIcon: {
+    lineHeight: 1,
+    fontSize: '1.25rem',
   },
-  payoutPercentage: {
+  closedOverlay: {
+    position: 'absolute',
+    inset: 0,
+    background: 'rgba(0,0,0,0.24)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    fontSize: '1.35rem',
+    fontWeight: 800,
+    letterSpacing: '1px',
+    textShadow: '0 2px 6px rgba(0,0,0,0.45)',
+  },
+  sideName: {
+    margin: '96px 0 30px',
     fontSize: '5rem',
     fontWeight: 900,
-    textShadow: '0 4px 15px rgba(0, 0, 0, 0.4)',
-    color: 'white',
+    letterSpacing: '2px',
+    textShadow: '0 3px 8px rgba(0,0,0,0.28)',
   },
-  pulse: {
-    animation: 'pulse 2s ease-in-out infinite',
+  label: {
+    margin: '0 0 12px',
+    fontSize: '2rem',
+    fontWeight: 700,
+  },
+  amount: {
+    margin: '0 0 28px',
+    fontSize: '5.5rem',
+    fontWeight: 900,
+    textShadow: '0 4px 10px rgba(0,0,0,0.28)',
+  },
+  payout: {
+    margin: 0,
+    fontSize: '5.3rem',
+    fontWeight: 900,
+    opacity: 0.8,
+    textShadow: '0 4px 10px rgba(0,0,0,0.28)',
   },
   fightInfo: {
     position: 'absolute',
@@ -325,124 +194,39 @@ const styles = {
     left: '50%',
     transform: 'translateX(-50%)',
     background: 'white',
-    padding: '30px 40px',
-    borderRadius: '0 0 15px 15px',
-    boxShadow: '0 10px 40px rgba(0, 0, 0, 0.4)',
-    zIndex: 10,
+    color: '#111427',
+    borderRadius: '0 0 16px 16px',
+    minWidth: '160px',
     textAlign: 'center',
+    padding: '20px 12px 14px',
+    zIndex: 6,
   },
   fightLabel: {
-    color: '#333',
-    fontSize: '1.2rem',
-    fontWeight: 600,
-    marginBottom: '10px',
+    marginBottom: '6px',
+    fontSize: '2rem',
+    fontWeight: 700,
   },
-  fightNumber: {
-    color: '#1a1a2e',
-    fontSize: '5rem',
-    fontWeight: 900,
+  fightNo: {
+    fontSize: '5.8rem',
     lineHeight: 1,
+    fontWeight: 900,
   },
-  statsContainer: {
-    marginTop: '40px',
-    padding: '30px',
-    background: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: '15px',
-    backdropFilter: 'blur(10px)',
-  },
-  statsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: '20px',
-  },
-  statItem: {
-    textAlign: 'center',
-    padding: '15px',
-    background: 'rgba(255, 255, 255, 0.05)',
-    borderRadius: '10px',
-  },
-  statLabel: {
-    fontSize: '0.9rem',
-    opacity: 0.8,
-    marginBottom: '5px',
+  allButton: {
+    position: 'absolute',
+    left: '50%',
+    bottom: '16px',
+    transform: 'translateX(-50%)',
+    border: '1px solid rgba(255,255,255,0.5)',
+    background: 'rgba(7, 8, 22, 0.9)',
     color: 'white',
-  },
-  statValue: {
-    fontSize: '1.5rem',
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  controls: {
-    marginTop: '30px',
-    textAlign: 'center',
-    padding: '20px',
-    background: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: '15px',
-    backdropFilter: 'blur(10px)',
-  },
-  button: {
-    padding: '15px 30px',
-    margin: '0 10px',
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    border: 'none',
-    borderRadius: '10px',
+    borderRadius: '999px',
+    padding: '14px 28px',
+    fontSize: '1.05rem',
+    fontWeight: 800,
+    letterSpacing: '0.8px',
     cursor: 'pointer',
-    transition: 'all 0.3s ease',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-    color: 'white',
-  },
-  buttonStart: {
-    background: 'linear-gradient(135deg, #00e676 0%, #00c853 100%)',
-  },
-  buttonStop: {
-    background: 'linear-gradient(135deg, #ff5252 0%, #d32f2f 100%)',
-  },
-  buttonReset: {
-    background: 'linear-gradient(135deg, #ffab00 0%, #ff8f00 100%)',
-  },
-  buttonHover: {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 5px 15px rgba(0, 0, 0, 0.3)',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-    cursor: 'not-allowed',
+    zIndex: 7,
   },
 };
-
-// Add CSS for animation
-const styleSheet = document.createElement("style");
-styleSheet.textContent = `
-  @keyframes pulse {
-    0%, 100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.7;
-    }
-  }
-  
-  body {
-    margin: 0;
-    padding: 0;
-    background: linear-gradient(135deg, #1a1a2e 0%, #0f0f1e 100%);
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  #root {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    padding: 20px;
-  }
-`;
-document.head.appendChild(styleSheet);
 
 export default BettingDisplay;
