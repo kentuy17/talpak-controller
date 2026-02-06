@@ -19,16 +19,10 @@ const BettingDisplay = () => {
     [walaBet, totalPool],
   );
 
-  const areAllOpen = isMeronOpen && isWalaOpen;
-
-  const toggleAll = () => {
-    const next = !areAllOpen;
-    setIsMeronOpen(next);
-    setIsWalaOpen(next);
-  };
 
   return (
     <main style={styles.page}>
+      <header style={styles.header}>TALPAK CHAMPIONSHIP NIGHT</header>
       <div style={styles.board}>
         <FighterPanel
           side='MERONs'
@@ -47,10 +41,6 @@ const BettingDisplay = () => {
           payout={walaPayout}
           panelStyle={styles.wala}
         />
-
-        <button style={styles.allButton} onClick={toggleAll}>
-          {areAllOpen ? 'CLOSE ALL' : 'OPEN ALL'}
-        </button>
       </div>
     </main>
   );
@@ -95,10 +85,21 @@ const styles = {
   page: {
     minHeight: '100vh',
     display: 'flex',
+    flexDirection: 'column',
+    gap: '16px',
     justifyContent: 'center',
     alignItems: 'center',
     background: '#060714',
     fontFamily: 'Arial, Helvetica, sans-serif',
+    padding: '24px',
+  },
+  header: {
+    color: '#fff',
+    fontSize: '2.1rem',
+    fontWeight: 900,
+    letterSpacing: '2px',
+    textTransform: 'uppercase',
+    textShadow: '0 3px 8px rgba(0,0,0,0.35)',
   },
   board: {
     width: '100%',
@@ -114,7 +115,7 @@ const styles = {
   panel: {
     minHeight: '680px',
     textAlign: 'center',
-    padding: '28px 24px 112px',
+    padding: '28px 24px',
     color: 'white',
     position: 'relative',
   },
@@ -189,23 +190,6 @@ const styles = {
     fontWeight: 900,
     opacity: 0.8,
     textShadow: '0 4px 10px rgba(0,0,0,0.28)',
-  },
-  allButton: {
-    position: 'absolute',
-    bottom: '22px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    border: '2px solid rgba(255,255,255,0.55)',
-    background: 'rgba(8, 10, 28, 0.88)',
-    color: 'white',
-    borderRadius: '999px',
-    padding: '14px 28px',
-    fontWeight: 900,
-    fontSize: '1.1rem',
-    letterSpacing: '1px',
-    cursor: 'pointer',
-    zIndex: 7,
-    boxShadow: '0 8px 20px rgba(0,0,0,0.38)',
   },
 };
 
