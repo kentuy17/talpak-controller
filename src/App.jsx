@@ -17,7 +17,7 @@ function App() {
     // Check for token in cookies on mount
     return getCookie('auth_token');
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading] = useState(false);
 
   const handleLogin = (authToken) => {
     setToken(authToken);

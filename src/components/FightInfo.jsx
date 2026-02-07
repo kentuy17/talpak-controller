@@ -2,10 +2,12 @@ import React from 'react';
 
 const FightInfo = ({ fightNumber, fightStatus, updateStatus }) => {
   return (
-    <div className='absolute inset-0 z-20 pointer-events-none flex flex-col items-center justify-center'>
+    <div className='absolute inset-0 z-20 pointer-events-none flex flex-col items-center pt-2'>
       <div className='pointer-events-auto bg-white rounded-2xl px-5 py-2 shadow-lg mb-4 text-center'>
         <div className='text-black text-sm font-bold mb-1'>FIGHT#</div>
-        <div className='text-black text-4xl font-bold leading-none'>{fightNumber}</div>
+        <div className='text-black text-4xl font-bold leading-none'>
+          {fightNumber}
+        </div>
       </div>
 
       <div className='pointer-events-auto flex flex-col gap-2 items-center'>
@@ -15,7 +17,7 @@ const FightInfo = ({ fightNumber, fightStatus, updateStatus }) => {
             fightStatus === 'WAITING' ? 'bg-orange-500' : 'bg-gray-700'
           }`}
         >
-          WAITING
+          NEXT FIGHT
         </button>
         <button
           onClick={() => updateStatus('OPEN')}
@@ -33,6 +35,14 @@ const FightInfo = ({ fightNumber, fightStatus, updateStatus }) => {
         >
           CLOSED
         </button>
+        <div className='flex gap-2 pt-2'>
+          <button className='px-3 py-2 rounded-lg font-bold text-white text-xs bg-slate-700'>
+            DRAW
+          </button>
+          <button className='px-3 py-2 rounded-lg font-bold text-white text-xs bg-slate-700'>
+            CANCEL
+          </button>
+        </div>
       </div>
     </div>
   );
