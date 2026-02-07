@@ -1,6 +1,14 @@
 import React from 'react';
 
-const FighterPanel = ({ side, isOpen, onToggle, bet, payout, panelStyle }) => (
+const FighterPanel = ({
+  side,
+  isOpen,
+  onToggle,
+  onSetWinner,
+  bet,
+  payout,
+  panelStyle,
+}) => (
   <section
     className={`h-full text-center px-4 py-6 text-white relative flex flex-col items-center ${panelStyle}`}
   >
@@ -18,7 +26,13 @@ const FighterPanel = ({ side, isOpen, onToggle, bet, payout, panelStyle }) => (
       {payout}%
     </p>
 
-    <div className='mt-auto mb-24'>
+    <div className='mt-auto mb-4 flex flex-col gap-3 items-center'>
+      <button
+        className='border border-white/60 rounded-full px-6 py-2 inline-flex items-center text-white font-extrabold text-sm tracking-wide'
+        onClick={onSetWinner}
+      >
+        SET WINNER
+      </button>
       <button
         className={`border-none rounded-full px-5 py-2 inline-flex gap-2 items-center text-white font-extrabold text-base tracking-wide cursor-pointer ${
           isOpen ? 'bg-green-600 bg-opacity-95' : 'bg-gray-800 bg-opacity-80'
