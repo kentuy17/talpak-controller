@@ -71,7 +71,7 @@ const BettingDisplay = ({ token, onLogout }) => {
       const response = await fetch(`/api/fights/${currentFightId}/status`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: status.toLowerCase() }),
@@ -82,7 +82,7 @@ const BettingDisplay = ({ token, onLogout }) => {
         setIsMeronOpen(status.toLowerCase() !== 'closed');
         setIsWalaOpen(status.toLowerCase() !== 'closed');
       } else {
-        alert('Failed to update status: ' + await response.text());
+        alert('Failed to update status: ' + (await response.text()));
       }
     } catch (err) {
       alert('Error updating status: ' + err.message);
@@ -90,10 +90,13 @@ const BettingDisplay = ({ token, onLogout }) => {
   };
 
   useEffect(() => {
-    socketRef.current = io('http://localhost:3000', {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-    });
+    socketRef.current = io(
+      import.meta.env.VITE_API_URL || window.location.origin,
+      {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+      },
+    );
 
     socketRef.current.on('connect', () => {
       console.log('Connected to Socket.IO server');
@@ -120,7 +123,8 @@ const BettingDisplay = ({ token, onLogout }) => {
 
     socketRef.current.on('fight_update', (data) => {
       console.log('Fight update:', data);
-      const { meron, wala, _id, status, fightNumber, previousFightWinner } = data;
+      const { meron, wala, _id, status, fightNumber, previousFightWinner } =
+        data;
       setMeronBet(parseFloat(meron));
       setWalaBet(parseFloat(wala));
       setFightStatus(status.toUpperCase() || 'WAITING');
@@ -154,42 +158,46 @@ const BettingDisplay = ({ token, onLogout }) => {
         socketRef.current.disconnect();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#060714]">
-        <div className="text-white text-2xl">Loading...</div>
+      <div className='min-h-screen flex items-center justify-center bg-[#060714]'>
+        <div className='text-white text-2xl'>Loading...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#060714]">
-        <div className="text-red-500 text-2xl">Error: {error}</div>
+      <div className='min-h-screen flex items-center justify-center bg-[#060714]'>
+        <div className='text-red-500 text-2xl'>Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen flex flex-col gap-4 justify-center items-center bg-[#060714] p-6 relative">
-      <header className="text-white text-[2.1rem] font-black tracking-[2px] uppercase shadow-lg pb-16 relative">
+    <main className='min-h-screen flex flex-col gap-4 justify-center items-center bg-[#060714] p-6 relative'>
+      <header className='text-white text-[2.1rem] font-black tracking-[2px] uppercase shadow-lg pb-16 relative'>
         {eventName || 'TALPAK CHAMPIONSHIP NIGHT'}
         <button
           onClick={onLogout}
-          className="absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold text-sm"
+          className='absolute top-0 right-0 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-bold text-sm'
         >
           LOGOUT
         </button>
       </header>
-      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-10 mt-20 bg-white rounded-b-2xl px-8 py-4 shadow-lg">
-        <div className="text-black text-xl font-bold mb-1 text-center">FIGHT#</div>
-        <div className="text-black text-6xl font-bold leading-none">{fightNumber}</div>
+      <div className='absolute top-0 left-1/2 transform -translate-x-1/2 z-10 mt-20 bg-white rounded-b-2xl px-8 py-4 shadow-lg'>
+        <div className='text-black text-xl font-bold mb-1 text-center'>
+          FIGHT#
+        </div>
+        <div className='text-black text-6xl font-bold leading-none'>
+          {fightNumber}
+        </div>
       </div>
       {/* Status Control Buttons */}
-      <div className="flex gap-2 mt-4">
+      <div className='flex gap-2 mt-4'>
         <button
           onClick={() => updateStatus('WAITING')}
           className={`px-6 py-3 rounded-lg font-bold text-white ${
@@ -215,14 +223,14 @@ const BettingDisplay = ({ token, onLogout }) => {
           CLOSED
         </button>
       </div>
-      <div className="w-full max-w-[1024px] min-h-[680px] grid grid-cols-2 relative">
+      <div className='w-full max-w-[1024px] min-h-[680px] grid grid-cols-2 relative'>
         <FighterPanel
           side='MERONs'
           isOpen={isMeronOpen}
           onToggle={() => setIsMeronOpen((value) => !value)}
           bet={formatMoney(meronBet)}
           payout={meronPayout}
-          panelStyle="bg-gradient-to-br from-red-500 via-red-600 to-red-700"
+          panelStyle='bg-gradient-to-br from-red-500 via-red-600 to-red-700'
         />
 
         <FighterPanel
@@ -231,7 +239,7 @@ const BettingDisplay = ({ token, onLogout }) => {
           onToggle={() => setIsWalaOpen((value) => !value)}
           bet={formatMoney(walaBet)}
           payout={walaPayout}
-          panelStyle="bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700"
+          panelStyle='bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700'
         />
       </div>
       {/* Splash Screen Overlay */}
@@ -246,7 +254,9 @@ const BettingDisplay = ({ token, onLogout }) => {
 };
 
 const FighterPanel = ({ side, isOpen, onToggle, bet, payout, panelStyle }) => (
-  <section className={`min-h-[680px] text-center p-7 text-white relative ${panelStyle}`}>
+  <section
+    className={`min-h-[680px] text-center p-7 text-white relative ${panelStyle}`}
+  >
     <button
       className={`absolute top-4 left-1/2 transform -translate-x-1/2 border-none rounded-full px-6 py-3 inline-flex gap-2.5 items-center text-white font-extrabold text-lg tracking-wide cursor-pointer z-6 ${
         isOpen ? 'bg-green-600 bg-opacity-95' : 'bg-gray-800 bg-opacity-78'
@@ -254,17 +264,23 @@ const FighterPanel = ({ side, isOpen, onToggle, bet, payout, panelStyle }) => (
       onClick={onToggle}
       aria-label={`${isOpen ? 'Close' : 'Open'} ${side} betting`}
     >
-      <span className="leading-none">{isOpen ? '🔓' : '🔒'}</span>
+      <span className='leading-none'>{isOpen ? '🔓' : '🔒'}</span>
       <span>{isOpen ? 'OPEN' : 'CLOSED'}</span>
     </button>
 
-    {!isOpen && <div className="absolute inset-0 bg-black bg-opacity-20 flex justify-center items-center text-xl font-extrabold tracking-wide shadow-md">BETTING CLOSED</div>}
+    {!isOpen && (
+      <div className='absolute inset-0 bg-black bg-opacity-20 flex justify-center items-center text-xl font-extrabold tracking-wide shadow-md'>
+        BETTING CLOSED
+      </div>
+    )}
 
-    <h1 className="mt-24 mb-8 text-[4.8rem] font-black tracking-[2px] shadow-md">{side}</h1>
-    <p className="mb-3 text-2xl font-bold">BET:</p>
-    <p className="mb-7 text-[5.2rem] font-black shadow-md">{bet}</p>
-    <p className="mb-3 text-2xl font-bold">PAYOUT:</p>
-    <p className="text-5xl font-black opacity-80 shadow-md">{payout}%</p>
+    <h1 className='mt-24 mb-8 text-[4.8rem] font-black tracking-[2px] shadow-md'>
+      {side}
+    </h1>
+    <p className='mb-3 text-2xl font-bold'>BET:</p>
+    <p className='mb-7 text-[5.2rem] font-black shadow-md'>{bet}</p>
+    <p className='mb-3 text-2xl font-bold'>PAYOUT:</p>
+    <p className='text-5xl font-black opacity-80 shadow-md'>{payout}%</p>
   </section>
 );
 

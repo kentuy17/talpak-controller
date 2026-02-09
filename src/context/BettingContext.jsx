@@ -243,11 +243,11 @@ export const BettingProvider = ({ children, token }) => {
       });
       if (response.ok) {
         let data = {};
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
+        try {
+          data = await response.json();
+        } catch {
+          data = {};
+        }
         setIsMeronOpen(!data.meron);
         setIsWalaOpen(!data.wala);
       }
@@ -312,10 +312,13 @@ export const BettingProvider = ({ children, token }) => {
 
   // Initialize socket and data
   useEffect(() => {
-    socketRef.current = io('http://localhost:3000', {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-    });
+    socketRef.current = io(
+      import.meta.env.VITE_API_URL || window.location.origin,
+      {
+        transports: ['websocket', 'polling'],
+        autoConnect: true,
+      },
+    );
 
     socketRef.current.on('connect', () => {
       console.log('Connected to Socket.IO server');
