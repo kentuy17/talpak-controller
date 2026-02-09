@@ -3,6 +3,7 @@ import React from 'react';
 const FightInfo = ({
   fightNumber,
   fightStatus,
+  onNextFight,
   updateStatus,
   onDeclareDraw,
   onDeclareCancel,
@@ -18,7 +19,7 @@ const FightInfo = ({
 
       <div className='pointer-events-auto flex flex-col gap-1.5 md:gap-2 items-center mt-auto'>
         <button
-          onClick={() => updateStatus('WAITING')}
+          onClick={onNextFight}
           className={`w-24 md:w-28 px-3 md:px-4 py-1.5 md:py-2 rounded-lg font-bold text-white text-xs md:text-sm ${
             fightStatus === 'WAITING' ? 'bg-orange-500' : 'bg-gray-700'
           }`}

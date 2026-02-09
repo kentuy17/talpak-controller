@@ -27,6 +27,7 @@ export const BettingProvider = ({ children, token }) => {
   const [eventName, setEventName] = useState('');
   const [currentFightId, setCurrentFightId] = useState(null);
   const [prevFightWinner, setPrevFightWinner] = useState(null);
+  const [winnerDeclaration, setWinnerDeclaration] = useState(null);
 
   const socketRef = useRef(null);
   const currentFightIdRef = useRef(null);
@@ -65,7 +66,12 @@ export const BettingProvider = ({ children, token }) => {
       if (!response.ok) {
         throw new Error('Failed to fetch current fight');
       }
-      const data = await response.json();
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
       console.log(data, 'fightData');
 
       setFightNumber(data.fightNumber || 0);
@@ -177,9 +183,53 @@ export const BettingProvider = ({ children, token }) => {
 
       if (!response.ok) {
         alert('Failed to declare winner: ' + (await response.text()));
+        return null;
       }
+
+      let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
+
+      const nextFight =
+        data?.nextFight ||
+        data?.fight ||
+        data?.currentFight ||
+        data?.data?.nextFight ||
+        null;
+
+      if (nextFight) {
+        const nextStatus = (nextFight.status || 'WAITING').toUpperCase();
+        setFightNumber(nextFight.fightNumber || 0);
+        setMeronBet(parseFloat(nextFight.meron) || 0);
+        setWalaBet(parseFloat(nextFight.wala) || 0);
+        setFightStatus(nextStatus);
+        setCurrentFightId(nextFight._id || null);
+        setIsMeronOpen(nextFight.status !== 'closed');
+        setIsWalaOpen(nextFight.status !== 'closed');
+      }
+
+      setWinnerDeclaration({
+        winner: winner.toUpperCase(),
+        totalAmount: data?.totalAmount ?? data?.totals?.amount ?? null,
+        winnerAmount: data?.winnerAmount ?? data?.totals?.winnerAmount ?? null,
+        winnerPercentage:
+          data?.winnerPercentage ?? data?.totals?.winnerPercentage ?? null,
+        resultsTrend:
+          data?.resultsTrend ||
+          data?.betTrends ||
+          data?.formattedResults ||
+          data?.recentResults ||
+          [],
+        nextFight,
+      });
+
+      return data;
     } catch (err) {
       alert('Error declaring winner: ' + err.message);
+      return null;
     }
   };
 
@@ -192,7 +242,12 @@ export const BettingProvider = ({ children, token }) => {
         },
       });
       if (response.ok) {
-        const data = await response.json();
+        let data = {};
+      try {
+        data = await response.json();
+      } catch {
+        data = {};
+      }
         setIsMeronOpen(!data.meron);
         setIsWalaOpen(!data.wala);
       }
@@ -323,6 +378,8 @@ export const BettingProvider = ({ children, token }) => {
     updateStatus,
     updatePartialState,
     declareWinner,
+    winnerDeclaration,
+    setWinnerDeclaration,
   };
 
   return (
