@@ -152,11 +152,11 @@ const BettingDisplay = ({ onLogout }) => {
   const isDashboard = activePage === 'dashboard';
 
   return (
-    <main className='h-screen overflow-hidden flex flex-col items-center bg-[#060714] pt-6 pb-0 px-0 relative font-sans'>
-      <header className='w-full text-center text-white text-[1.65rem] font-black tracking-[1px] uppercase shadow-lg pb-0 px-0 relative'>
+    <main className='h-dvh overflow-hidden flex flex-col items-center bg-[#060714] pt-2 md:pt-3 pb-0 px-0 relative font-sans'>
+      <header className='w-full text-center text-white text-[clamp(1.05rem,2.4vw,2rem)] font-black tracking-[1px] uppercase shadow-lg pb-1 px-2 relative leading-tight'>
         <button
           onClick={() => setIsDrawerOpen(true)}
-          className='absolute top-0 left-4 bg-slate-700 hover:bg-slate-600 text-white px-3 py-2 rounded font-bold text-sm'
+          className='absolute top-0 left-2 md:left-4 bg-slate-700 hover:bg-slate-600 text-white px-2 md:px-3 py-1.5 md:py-2 rounded font-bold text-xs md:text-sm'
         >
           ☰ MENU
         </button>
@@ -164,7 +164,7 @@ const BettingDisplay = ({ onLogout }) => {
       </header>
 
       {isDashboard ? (
-        <div className='w-full max-w-[1280px] flex-1 min-h-0 grid grid-cols-2 relative pt-4'>
+        <div className='w-full max-w-[1280px] flex-1 min-h-0 grid grid-cols-2 relative pt-2 md:pt-3'>
           <FighterPanel
             side='MERON'
             isOpen={isMeronOpen}

@@ -10,16 +10,16 @@ const SplashScreen = ({ prevFightWinner, fightNumber }) => {
 
   return (
     <div
-      className={`h-[70%] w-full flex items-center justify-center ${getBackgroundColor()} fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50`}
+      className={`h-full w-full flex items-center justify-center px-4 ${getBackgroundColor()} fixed inset-0 z-10 pointer-events-none`}
     >
       <div className='text-center animate-pulse'>
-        <h2 className='text-6xl font-bold text-yellow-300 mb-4'>
+        <h2 className='text-[clamp(2rem,7vw,4rem)] font-bold text-yellow-300 mb-2 md:mb-4'>
           {`FIGHT# ${fightNumber - 1}`}
         </h2>
-        <div className='text-8xl font-bold text-white'>
+        <div className='text-[clamp(3rem,10vw,6rem)] font-bold text-white'>
           {prevFightWinner.toUpperCase()}
         </div>
-        <h2 className='text-6xl font-bold text-yellow-300 mt-4'>WINS</h2>
+        <h2 className='text-[clamp(2rem,7vw,4rem)] font-bold text-yellow-300 mt-2 md:mt-4'>WINS</h2>
       </div>
     </div>
   );
