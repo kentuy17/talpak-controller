@@ -29,6 +29,11 @@ export const BettingProvider = ({ children, token }) => {
   const [prevFightWinner, setPrevFightWinner] = useState(null);
 
   const socketRef = useRef(null);
+  const currentFightIdRef = useRef(null);
+
+  useEffect(() => {
+    currentFightIdRef.current = currentFightId;
+  }, [currentFightId]);
 
   // Computed values
   const totalPool = useMemo(() => meronBet + walaBet, [meronBet, walaBet]);
@@ -199,12 +204,26 @@ export const BettingProvider = ({ children, token }) => {
   // Socket event handlers
   const handleBetAdded = (bet) => {
     console.log('New bet received:', bet);
-    if (bet.fightId === currentFightId) {
-      if (bet.betSide === 'meron') {
-        setMeronBet((prev) => prev + parseInt(bet.amount));
-      } else if (bet.betSide === 'wala') {
-        setWalaBet((prev) => prev + parseInt(bet.amount));
-      }
+    if (bet.fightId !== currentFightIdRef.current) {
+      return;
+    }
+
+    const nextMeron = Number.parseFloat(bet.meron);
+    const nextWala = Number.parseFloat(bet.wala);
+
+    if (Number.isFinite(nextMeron) && Number.isFinite(nextWala)) {
+      setMeronBet(nextMeron);
+      setWalaBet(nextWala);
+      return;
+    }
+
+    const betAmount = Number.parseFloat(bet.amount) || 0;
+    const betSide = (bet.betSide || '').toLowerCase();
+
+    if (betSide === 'meron') {
+      setMeronBet((prev) => prev + betAmount);
+    } else if (betSide === 'wala') {
+      setWalaBet((prev) => prev + betAmount);
     }
   };
 
