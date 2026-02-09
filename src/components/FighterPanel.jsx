@@ -28,7 +28,7 @@ const FighterPanel = ({
 
     <div className='mt-auto mb-4 flex flex-col gap-3 items-center'>
       <button
-        className='border border-white/60 rounded-full px-6 py-2 inline-flex items-center text-white font-extrabold text-sm tracking-wide'
+        className='relative z-20 border border-white/60 rounded-full px-6 py-2 inline-flex items-center text-white font-extrabold text-sm tracking-wide'
         onClick={onSetWinner}
       >
         SET WINNER
@@ -46,7 +46,7 @@ const FighterPanel = ({
     </div>
 
     {!isOpen && (
-      <div className='absolute inset-0 bg-black bg-opacity-70 flex justify-center items-center text-lg font-extrabold tracking-wide shadow-md'>
+      <div className='absolute inset-0 z-10 bg-black bg-opacity-70 flex justify-center items-center text-lg font-extrabold tracking-wide shadow-md'>
         BETTING CLOSED
       </div>
     )}

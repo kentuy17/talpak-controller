@@ -142,6 +142,30 @@ export const BettingProvider = ({ children, token }) => {
     }
   };
 
+  const declareWinner = async (winner) => {
+    if (!currentFightId) {
+      alert('No active fight selected.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/fights/${currentFightId}/declare-winner`, {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ winner: winner.toLowerCase() }),
+      });
+
+      if (!response.ok) {
+        alert('Failed to declare winner: ' + (await response.text()));
+      }
+    } catch (err) {
+      alert('Error declaring winner: ' + err.message);
+    }
+  };
+
   const fetchPartialState = async (fightNo) => {
     try {
       const response = await fetch(`/api/fights/partial-state/${fightNo}`, {
@@ -267,6 +291,7 @@ export const BettingProvider = ({ children, token }) => {
     setIsWalaOpen,
     updateStatus,
     updatePartialState,
+    declareWinner,
   };
 
   return (

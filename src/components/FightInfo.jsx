@@ -1,6 +1,12 @@
 import React from 'react';
 
-const FightInfo = ({ fightNumber, fightStatus, updateStatus }) => {
+const FightInfo = ({
+  fightNumber,
+  fightStatus,
+  updateStatus,
+  onDeclareDraw,
+  onDeclareCancel,
+}) => {
   return (
     <div className='absolute inset-0 z-20 pointer-events-none flex flex-col items-center pt-2'>
       <div className='pointer-events-auto bg-white rounded-2xl px-5 py-2 shadow-lg mb-4 text-center'>
@@ -36,10 +42,16 @@ const FightInfo = ({ fightNumber, fightStatus, updateStatus }) => {
           CLOSED
         </button>
         <div className='flex gap-2 pt-2'>
-          <button className='px-3 py-2 rounded-lg font-bold text-white text-xs bg-slate-700'>
+          <button
+            onClick={onDeclareDraw}
+            className='px-3 py-2 rounded-lg font-bold text-white text-xs bg-slate-700'
+          >
             DRAW
           </button>
-          <button className='px-3 py-2 rounded-lg font-bold text-white text-xs bg-slate-700'>
+          <button
+            onClick={onDeclareCancel}
+            className='px-3 py-2 rounded-lg font-bold text-white text-xs bg-slate-700'
+          >
             CANCEL
           </button>
         </div>
