@@ -134,6 +134,7 @@ const BettingDisplay = ({ onLogout }) => {
     prevFightWinner,
     updateStatus,
     updatePartialState,
+    declareWinner,
   } = useBetting();
 
   if (loading) {
@@ -145,7 +146,7 @@ const BettingDisplay = ({ onLogout }) => {
   }
 
   const handleSetWinner = (winner) => {
-    console.log('Set winner:', winner);
+    declareWinner(winner);
   };
 
   const isDashboard = activePage === 'dashboard';
@@ -188,6 +189,8 @@ const BettingDisplay = ({ onLogout }) => {
             fightNumber={fightNumber}
             fightStatus={fightStatus}
             updateStatus={updateStatus}
+            onDeclareDraw={() => declareWinner('DRAW')}
+            onDeclareCancel={() => declareWinner('CANCELLED')}
           />
         </div>
       ) : null}
