@@ -135,7 +135,46 @@ const BettingDisplay = ({ onLogout }) => {
     updateStatus,
     updatePartialState,
     declareWinner,
+    winnerDeclaration,
+    setWinnerDeclaration,
   } = useBetting();
+
+
+  const handleSetWinner = async (winner) => {
+    await declareWinner(winner);
+  };
+
+  const isDashboard = activePage === 'dashboard';
+
+
+  const winnerModal = useMemo(() => {
+    if (!winnerDeclaration) {
+      return null;
+    }
+
+    return {
+      winner: winnerDeclaration.winner,
+      totalAmount: Number(winnerDeclaration.totalAmount) || 0,
+      winnerAmount: Number(winnerDeclaration.winnerAmount) || 0,
+      winnerPercentage: Number(winnerDeclaration.winnerPercentage) || 0,
+      resultsTrend: Array.isArray(winnerDeclaration.resultsTrend)
+        ? winnerDeclaration.resultsTrend
+        : [],
+    };
+  }, [winnerDeclaration]);
+
+  const formatTrendValue = (value) => {
+    if (value === 'MERON' || value === 'WALA') {
+      return value;
+    }
+
+    if (typeof value === 'object' && value !== null) {
+      return value.result || value.winner || JSON.stringify(value);
+    }
+
+    return String(value);
+  };
+
 
   if (loading) {
     return <LoadingState />;
@@ -144,12 +183,6 @@ const BettingDisplay = ({ onLogout }) => {
   if (error) {
     return <ErrorState error={error} />;
   }
-
-  const handleSetWinner = (winner) => {
-    declareWinner(winner);
-  };
-
-  const isDashboard = activePage === 'dashboard';
 
   return (
     <main className='h-dvh overflow-hidden flex flex-col items-center bg-[#060714] pt-2 md:pt-3 pb-0 px-0 relative font-sans'>
@@ -188,6 +221,14 @@ const BettingDisplay = ({ onLogout }) => {
           <FightInfo
             fightNumber={fightNumber}
             fightStatus={fightStatus}
+            onNextFight={() => {
+              if (!winnerDeclaration?.nextFight) {
+                alert('No next fight data yet. Declare a winner first.');
+                return;
+              }
+
+              setWinnerDeclaration(null);
+            }}
             updateStatus={updateStatus}
             onDeclareDraw={() => declareWinner('DRAW')}
             onDeclareCancel={() => declareWinner('CANCELLED')}
@@ -205,6 +246,76 @@ const BettingDisplay = ({ onLogout }) => {
           fightNumber={fightNumber}
         />
       )}
+
+
+      {winnerModal ? (
+        <div className='absolute inset-0 z-50 flex items-center justify-center bg-black/70 p-4'>
+          <div className='w-full max-w-md rounded-xl bg-slate-900 border border-slate-700 p-5 text-white'>
+            <h3 className='text-xl font-bold mb-3'>Winner Declared</h3>
+            <p className='mb-1'>Result: <span className='font-bold'>{winnerModal.winner}</span></p>
+            <p className='mb-1'>Total Amount: <span className='font-bold'>{formatMoney(winnerModal.totalAmount)}</span></p>
+            <p className='mb-1'>Winning Side Amount: <span className='font-bold'>{formatMoney(winnerModal.winnerAmount)}</span></p>
+            <p className='mb-3'>Winning Percentage: <span className='font-bold'>{winnerModal.winnerPercentage.toFixed(2)}%</span></p>
+
+            <div className='mb-4'>
+              <p className='font-bold mb-2'>Bet Trends</p>
+              <div className='flex flex-wrap gap-1 mb-3'>
+                {winnerModal.resultsTrend.length > 0 ? (
+                  winnerModal.resultsTrend.map((trend, index) => {
+                    const label = formatTrendValue(trend);
+                    const isMeron = label === 'MERON';
+                    const isWala = label === 'WALA';
+                    return (
+                      <span
+                        key={`${label}-${index}`}
+                        className={`px-2 py-1 rounded text-xs font-semibold border ${
+                          isMeron
+                            ? 'bg-red-500/30 border-red-400'
+                            : isWala
+                              ? 'bg-blue-500/30 border-blue-400'
+                              : 'bg-slate-800 border-slate-600'
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    );
+                  })
+                ) : (
+                  <span className='text-sm text-slate-300'>No trend data returned.</span>
+                )}
+              </div>
+              <p className='font-bold mb-2'>Formatted Results</p>
+              <div className='grid grid-rows-6 grid-flow-col auto-cols-[18px] gap-1 overflow-x-auto'>
+                {formatFightResultsGrid(
+                  winnerModal.resultsTrend.map((trend) => formatTrendValue(trend)),
+                ).map((entry) => (
+                  <div
+                    key={`${entry.column}-${entry.row}-${entry.fightIndex}`}
+                    className={`w-4 h-4 rounded-full border ${
+                      entry.result === 'MERON'
+                        ? 'bg-red-500 border-red-200'
+                        : 'bg-blue-500 border-blue-200'
+                    }`}
+                    style={{ gridColumn: entry.column + 1, gridRow: entry.row + 1 }}
+                    title={`Fight ${entry.fightIndex + 1} - ${entry.result}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className='flex justify-end'>
+              <button
+                onClick={() => {
+                  setWinnerDeclaration(null);
+                }}
+                className='px-4 py-2 rounded bg-indigo-600 hover:bg-indigo-500 font-semibold'
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {isDrawerOpen ? (
         <>
