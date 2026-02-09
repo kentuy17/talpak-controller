@@ -148,14 +148,26 @@ export const BettingProvider = ({ children, token }) => {
       return;
     }
 
+    const winnerLower = winner.toLowerCase();
+    const validWinners = ['meron', 'wala', 'draw', 'cancelled'];
+    if (!validWinners.includes(winnerLower)) {
+      alert(`Invalid winner: ${winner}.`);
+      return;
+    }
+    const status = winnerLower === 'cancelled' ? 'cancelled' : 'completed';
+
     try {
-      const response = await fetch(`/api/fights/${currentFightId}/declare-winner`, {
+      const response = await fetch('/api/fights/declare-winner', {
         method: 'PATCH',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ winner: winner.toLowerCase() }),
+        body: JSON.stringify({
+          fightId: currentFightId,
+          winner: winnerLower,
+          status,
+        }),
       });
 
       if (!response.ok) {
