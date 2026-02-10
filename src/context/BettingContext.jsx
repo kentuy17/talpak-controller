@@ -208,11 +208,14 @@ export const BettingProvider = ({ children, token }) => {
 
   const fetchPartialState = async (fightNo) => {
     try {
-      const { data = {} } = await api.get(`/api/fights/partial-state/${fightNo}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const { data = {} } = await api.get(
+        `/api/fights/partial-state/${fightNo}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       setIsMeronOpen(!data.meron);
       setIsWalaOpen(!data.wala);
@@ -277,7 +280,7 @@ export const BettingProvider = ({ children, token }) => {
 
   // Initialize socket and data
   useEffect(() => {
-    socketRef.current = io(API_BASE_URL, {
+    socketRef.current = io('http://192.168.1.10:3000', {
       transports: ['websocket', 'polling'],
       autoConnect: true,
       withCredentials: true,

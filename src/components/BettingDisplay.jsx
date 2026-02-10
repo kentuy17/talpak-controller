@@ -91,7 +91,8 @@ const BettingDisplay = ({ token, onLogout }) => {
 
   useEffect(() => {
     socketRef.current = io(
-      import.meta.env.VITE_API_URL || window.location.origin,
+      // import.meta.env.VITE_API_URL || window.location.origin,
+      'http://192.168.1.10:3000',
       {
         transports: ['websocket', 'polling'],
         reconnection: true,
