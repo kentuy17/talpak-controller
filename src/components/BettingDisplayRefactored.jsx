@@ -193,6 +193,15 @@ const BettingDisplay = ({ onLogout }) => {
         >
           ☰ MENU
         </button>
+        <a
+          href='/downloads/talpak-controller-mobile-debug.apk'
+          download
+          className='absolute top-0 right-2 md:right-4 bg-emerald-700 hover:bg-emerald-600 text-white px-2 md:px-3 py-1.5 md:py-2 rounded font-bold text-xs md:text-sm normal-case flex items-center gap-1'
+          title='Download Android APK'
+        >
+          <span aria-hidden='true'>📱</span>
+          <span>APK</span>
+        </a>
         {eventName || 'TALPAK CHAMPIONSHIP NIGHT'}
       </header>
 
@@ -354,6 +363,14 @@ const BettingDisplay = ({ onLogout }) => {
               >
                 Event Viewer
               </button>
+              <a
+                href='/downloads/talpak-controller-mobile-debug.apk'
+                download
+                className='text-left bg-emerald-700 hover:bg-emerald-600 px-3 py-2 rounded flex items-center gap-2'
+              >
+                <span aria-hidden='true'>📱</span>
+                <span>Download APK</span>
+              </a>
               <button
                 onClick={onLogout}
                 className='text-left bg-red-600 hover:bg-red-500 px-3 py-2 rounded mt-2'

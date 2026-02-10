@@ -7,9 +7,14 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "android:add": "cap add android",
+    "android:sync": "cap sync android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.0.2",
+    "@capacitor/cli": "^8.0.2",
+    "@capacitor/core": "^8.0.2",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "socket.io-client": "^4.7.2"
