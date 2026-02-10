@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api, getApiErrorMessage } from '../config/api';
 
 const LoginPage = ({ onLogin }) => {
   const [username, setUsername] = useState('');
@@ -23,41 +24,29 @@ const LoginPage = ({ onLogin }) => {
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          username: username.trim(),
-          password: password,
-        }),
+      const { data } = await api.post('/api/auth/login', {
+        username: username.trim(),
+        password,
       });
 
-      const data = await response.json();
+      // Store token in cookie
+      document.cookie = `auth_token=${data.token}; path=/; max-age=86400`; // 24 hours
 
-      if (response.ok) {
-        // Store token in cookie
-        document.cookie = `auth_token=${data.token}; path=/; max-age=86400`; // 24 hours
-
-        // Store user details in localStorage
-        if (data.user) {
-          localStorage.setItem('username', data.user.username || username);
-          localStorage.setItem('userRole', data.user.role || 'cashinTeller');
-          if (data.user.tellerNo) {
-            localStorage.setItem('tellerNo', data.user.tellerNo);
-          }
-          if (data.user._id) {
-            localStorage.setItem('userId', data.user._id);
-          }
+      // Store user details in localStorage
+      if (data.user) {
+        localStorage.setItem('username', data.user.username || username);
+        localStorage.setItem('userRole', data.user.role || 'cashinTeller');
+        if (data.user.tellerNo) {
+          localStorage.setItem('tellerNo', data.user.tellerNo);
         }
-
-        onLogin(data.token);
-      } else {
-        setError(data.message || 'Login failed');
+        if (data.user._id) {
+          localStorage.setItem('userId', data.user._id);
+        }
       }
+
+      onLogin(data.token);
     } catch (err) {
-      setError('Error: ' + err.message);
+      setError(getApiErrorMessage(err, 'Login failed'));
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +66,7 @@ const LoginPage = ({ onLogin }) => {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              d="M16 7a4 4 0 11-8 0 4 4 0 0 18 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
             />
           </svg>
         </div>

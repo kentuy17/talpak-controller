@@ -2,6 +2,7 @@ import { createContext, useState, useEffect, useMemo, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { COMMISSION, calculatePayout } from '../utils/bettingUtils';
 import { useContext } from 'react';
+import { API_BASE_URL, api, getApiErrorMessage } from '../config/api';
 
 const BettingContext = createContext(undefined);
 
@@ -51,33 +52,20 @@ export const BettingProvider = ({ children, token }) => {
 
   // API Functions
   const fetchActiveEvent = async () => {
-    const response = await fetch('/api/guests/event/active');
-    if (!response.ok) {
-      throw new Error('Failed to fetch active event');
-    }
-    const data = await response.json();
+    const { data } = await api.get('/api/guests/event/active');
     setEventName(data.eventName);
     return data;
   };
 
   const fetchCurrentFight = async (eventId) => {
     try {
-      const response = await fetch(`/api/guests/current/${eventId}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch current fight');
-      }
-      let data = {};
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
+      const { data = {} } = await api.get(`/api/guests/current/${eventId}`);
       console.log(data, 'fightData');
 
       setFightNumber(data.fightNumber || 0);
       setMeronBet(parseFloat(data.meron) || 0);
       setWalaBet(parseFloat(data.wala) || 0);
-      setFightStatus(data.status.toUpperCase() || 'WAITING');
+      setFightStatus(data.status?.toUpperCase() || 'WAITING');
       setCurrentFightId(data._id || null);
       setIsMeronOpen(data.status !== 'closed');
       setIsWalaOpen(data.status !== 'closed');
@@ -89,7 +77,7 @@ export const BettingProvider = ({ children, token }) => {
 
       setLoading(false);
     } catch (err) {
-      setError(err.message);
+      setError(getApiErrorMessage(err, 'Failed to fetch current fight'));
       setLoading(false);
     }
   };
@@ -101,24 +89,23 @@ export const BettingProvider = ({ children, token }) => {
     }
 
     try {
-      const response = await fetch(`/api/fights/${currentFightId}/status`, {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
+      await api.patch(
+        `/api/fights/${currentFightId}/status`,
+        {
+          status: status.toLowerCase(),
         },
-        body: JSON.stringify({ status: status.toLowerCase() }),
-      });
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-      if (response.ok) {
-        setFightStatus(status.toUpperCase());
-        setIsMeronOpen(status.toLowerCase() !== 'closed');
-        setIsWalaOpen(status.toLowerCase() !== 'closed');
-      } else {
-        alert('Failed to update status: ' + (await response.text()));
-      }
+      setFightStatus(status.toUpperCase());
+      setIsMeronOpen(status.toLowerCase() !== 'closed');
+      setIsWalaOpen(status.toLowerCase() !== 'closed');
     } catch (err) {
-      alert('Error updating status: ' + err.message);
+      alert(getApiErrorMessage(err, 'Error updating status'));
     }
   };
 
@@ -126,30 +113,27 @@ export const BettingProvider = ({ children, token }) => {
     try {
       console.log('clicked');
 
-      const response = await fetch('/api/fights/partial-state', {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      await api.patch(
+        '/api/fights/partial-state',
+        {
           side: side.toUpperCase(),
           isClosed,
           fightNo: fightNumber,
-        }),
-      });
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
-      if (response.ok) {
-        if (side.toUpperCase() === 'MERON') {
-          setIsMeronOpen(!isClosed);
-        } else if (side.toUpperCase() === 'WALA') {
-          setIsWalaOpen(!isClosed);
-        }
-      } else {
-        alert('Failed to update partial state: ' + (await response.text()));
+      if (side.toUpperCase() === 'MERON') {
+        setIsMeronOpen(!isClosed);
+      } else if (side.toUpperCase() === 'WALA') {
+        setIsWalaOpen(!isClosed);
       }
     } catch (err) {
-      alert('Error updating partial state: ' + err.message);
+      alert(getApiErrorMessage(err, 'Error updating partial state'));
     }
   };
 
@@ -168,30 +152,19 @@ export const BettingProvider = ({ children, token }) => {
     const status = winnerLower === 'cancelled' ? 'cancelled' : 'completed';
 
     try {
-      const response = await fetch('/api/fights/declare-winner', {
-        method: 'PATCH',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const { data = {} } = await api.patch(
+        '/api/fights/declare-winner',
+        {
           fightId: currentFightId,
           winner: winnerLower,
           status,
-        }),
-      });
-
-      if (!response.ok) {
-        alert('Failed to declare winner: ' + (await response.text()));
-        return null;
-      }
-
-      let data = {};
-      try {
-        data = await response.json();
-      } catch {
-        data = {};
-      }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
 
       const nextFight =
         data?.nextFight ||
@@ -228,29 +201,21 @@ export const BettingProvider = ({ children, token }) => {
 
       return data;
     } catch (err) {
-      alert('Error declaring winner: ' + err.message);
+      alert(getApiErrorMessage(err, 'Error declaring winner'));
       return null;
     }
   };
 
   const fetchPartialState = async (fightNo) => {
     try {
-      const response = await fetch(`/api/fights/partial-state/${fightNo}`, {
+      const { data = {} } = await api.get(`/api/fights/partial-state/${fightNo}`, {
         headers: {
           Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
         },
       });
-      if (response.ok) {
-        let data = {};
-        try {
-          data = await response.json();
-        } catch {
-          data = {};
-        }
-        setIsMeronOpen(!data.meron);
-        setIsWalaOpen(!data.wala);
-      }
+
+      setIsMeronOpen(!data.meron);
+      setIsWalaOpen(!data.wala);
     } catch (err) {
       console.error('Error fetching partial state:', err);
     }
@@ -312,13 +277,11 @@ export const BettingProvider = ({ children, token }) => {
 
   // Initialize socket and data
   useEffect(() => {
-    socketRef.current = io(
-      import.meta.env.VITE_API_URL || window.location.origin,
-      {
-        transports: ['websocket', 'polling'],
-        autoConnect: true,
-      },
-    );
+    socketRef.current = io(API_BASE_URL, {
+      transports: ['websocket', 'polling'],
+      autoConnect: true,
+      withCredentials: true,
+    });
 
     socketRef.current.on('connect', () => {
       console.log('Connected to Socket.IO server');
@@ -328,8 +291,8 @@ export const BettingProvider = ({ children, token }) => {
       console.log('Disconnected from Socket.IO server');
     });
 
-    socketRef.current.on('connect_error', (error) => {
-      console.error('Socket.IO connection error:', error);
+    socketRef.current.on('connect_error', (socketError) => {
+      console.error('Socket.IO connection error:', socketError);
     });
 
     socketRef.current.on('bet_added', handleBetAdded);
@@ -344,7 +307,7 @@ export const BettingProvider = ({ children, token }) => {
           setLoading(false);
         }
       } catch (err) {
-        setError(err.message);
+        setError(getApiErrorMessage(err, 'Failed to initialize data'));
         setLoading(false);
       }
     };
