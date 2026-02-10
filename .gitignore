@@ -25,3 +25,4 @@ dist-ssr
 
 # Android artifacts
 public/downloads/*.apk
+android
