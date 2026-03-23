@@ -5,7 +5,7 @@ import { useContext } from 'react';
 import { API_BASE_URL, api, getApiErrorMessage } from '../config/api';
 
 const BettingContext = createContext(undefined);
-
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
 // eslint-disable-next-line react-refresh/only-export-components
 export const useBetting = () => {
   const context = useContext(BettingContext);
@@ -280,10 +280,13 @@ export const BettingProvider = ({ children, token }) => {
 
   // Initialize socket and data
   useEffect(() => {
-    socketRef.current = io('http://192.168.1.10:3000', {
+    socketRef.current = io(VITE_BASE_URL, {
       transports: ['websocket', 'polling'],
       autoConnect: true,
       withCredentials: true,
+      auth: {
+        token,
+      },
     });
 
     socketRef.current.on('connect', () => {

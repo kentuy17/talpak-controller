@@ -3,6 +3,7 @@ import { io } from 'socket.io-client';
 import SplashScreen from './SplashScreen';
 
 const COMMISSION = 5;
+const VITE_BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const BettingDisplay = ({ token, onLogout }) => {
   const [meronBet, setMeronBet] = useState(0);
@@ -92,7 +93,7 @@ const BettingDisplay = ({ token, onLogout }) => {
   useEffect(() => {
     socketRef.current = io(
       // import.meta.env.VITE_API_URL || window.location.origin,
-      'http://192.168.1.10:3000',
+      VITE_BASE_URL,
       {
         transports: ['websocket', 'polling'],
         reconnection: true,

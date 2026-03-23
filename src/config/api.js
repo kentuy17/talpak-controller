@@ -40,3 +40,20 @@ export const getApiErrorMessage = (error, fallbackMessage) => {
 
   return fallbackMessage;
 };
+
+/**
+ * Function to get the value of a cookie by name
+ * @param {string} name - The name of the cookie to retrieve
+ * @returns {string|null} The value of the cookie if found, otherwise null
+ */
+// Helper function to get cookie value
+export const getCookie = (name) => {
+  // Create a string with all cookies, prefixed with '; ' to ensure proper splitting
+  const value = `; ${document.cookie}`;
+  // Split the string to find the cookie with the specified name
+  const parts = value.split(`; ${name}=`);
+  // If the cookie exists, extract and return its value
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  // Return null if the cookie is not found
+  return null;
+};

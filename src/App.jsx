@@ -3,14 +3,7 @@ import './App.css';
 import BettingDisplay from './components/BettingDisplayRefactored';
 import LoginPage from './components/LoginPage';
 import { BettingProvider } from './context/BettingContext';
-
-// Helper function to get cookie value
-const getCookie = (name) => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; ${name}=`);
-  if (parts.length === 2) return parts.pop().split(';').shift();
-  return null;
-};
+import { getCookie } from './config/api';
 
 function App() {
   const [token, setToken] = useState(() => {
